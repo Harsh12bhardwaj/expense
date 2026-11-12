@@ -1,127 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Register - VaultFlow Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #BCBAB8;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .container {
-      max-width: 400px;
-      width: 100%;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
-    }
-
-    .form {
-      margin-top: 20px;
-    }
-
-    .login-link {
-      margin-top: 15px;
-      display: block;
-      color: #825CFF;
-      font-size: 14px;
-      text-decoration: none;
-    }
-
-    .login-link:hover {
-      text-decoration: underline;
-    }
-  </style>
 </head>
+<body class="auth-page">
 
-<body>
-  <div class="container">
-    <h1>Register</h1>
-    <div class="form">
-      <form id="form">
-        <div class="form-control">
-          <label for="username">Username</label>
-          <input type="text" id="username" placeholder="Choose a username">
+  <div id="toast-container"></div>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand-logo">
+        <div class="brand-icon">💰</div>
+        <span class="brand-title">VaultFlow</span>
+      </div>
+      <p class="auth-subtitle">Create your personal financial account</p>
+    </div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          class="form-input" 
+          placeholder="e.g. Alex Morgan" 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          class="form-input" 
+          placeholder="Choose a username" 
+          autocomplete="username"
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="form-input" 
+          placeholder="alex@example.com" 
+          autocomplete="email"
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-with-icon">
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input" 
+            placeholder="At least 6 characters" 
+            autocomplete="new-password"
+            required 
+          />
+          <button type="button" class="toggle-password-btn" id="togglePasswordBtn">👁️</button>
         </div>
-        <div class="form-control">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="Enter your email">
-        </div>
-        <div class="form-control">
-          <label for="password">Password</label>
-          <input type="password" id="password" placeholder="Create a password">
-        </div>
-        <div class="form-control">
-          <label for="confirm-password">Confirm Password</label>
-          <input type="password" id="confirm-password" placeholder="Confirm your password">
-        </div>
-        <button type="button" class="btn" id="register-btn">Register</button>
-        <a href="login.html" class="login-link">Already have an account? Login</a>
-      </form>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          class="form-input" 
+          placeholder="Repeat password" 
+          autocomplete="new-password"
+          required 
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">
+        <span id="btnText">Create Account</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="login.html">Sign In</a>
     </div>
   </div>
 
   <script>
-    document.getElementById('register-btn').addEventListener('click', async (event) => {
-      event.preventDefault();
+    const API_BASE = "http://localhost:8080/ExpTrack";
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      const icons = { success: '✅', error: '⚠️', warning: '🔔', info: 'ℹ️' };
+      toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><div>${message}</div>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    togglePasswordBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
       const username = document.getElementById('username').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
-      const confirmPassword = document.getElementById('confirm-password').value.trim();
+      const confirmPassword = document.getElementById('confirmPassword').value.trim();
+      const submitBtn = document.getElementById('registerSubmitBtn');
+      const btnText = document.getElementById('btnText');
 
       if (!username || !email || !password || !confirmPassword) {
-        alert('Please fill in all fields.');
+        showToast('Please fill in all required fields.', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters long.', 'warning');
         return;
       }
 
       if (password !== confirmPassword) {
-        alert('Passwords do not match.');
+        showToast('Passwords do not match.', 'error');
         return;
       }
 
-      const user = { username, email, password };
+      submitBtn.disabled = true;
+      btnText.textContent = 'Creating account...';
 
       try {
-        const response = await fetch("http://localhost:8080/ExpTrack/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(user)
+        const response = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, email, password })
         });
 
+        const result = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.text();
-          alert("Error: " + errorData); // Backend sends plain error
-          return;
+          throw new Error(result.message || 'Registration failed');
         }
 
-        const data = await response.json();
-        alert("Registration successful for: " + data.username);
-        window.location.href = 'login.html';
+        showToast('Registration successful! Redirecting to login...', 'success');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1200);
 
-        // Optionally redirect or clear form
-        document.getElementById("form").reset();
-        //form.reset();
-
-      } catch (error) {
-        alert("Request failed: " + error.message);
+      } catch (err) {
+        showToast(err.message, 'error');
+        submitBtn.disabled = false;
+        btnText.textContent = 'Create Account';
       }
-
     });
   </script>
 </body>
-
 </html>

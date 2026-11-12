@@ -1,62 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaultFlow - Financial Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js for Interactive Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <div class="top-bar">
-            <h1>Expense Tracker</h1>
-            <button class="logout-button" id="logoutBtn">Logout</button>
-        </div>
-        <div class="balance">
-            <h2>Your Balance</h2>
-            <p id="balance">₹0.00</p>
-        </div>
-        <div class="income-expense">
-            <div>
-                <h3>Income</h3>
-                <p id="income">₹0.00</p>
-            </div>
-            <div class="expense">
-                <h3>Expenses</h3>
-                <p id="expense">₹0.00</p>
-            </div>
-        </div>
-        <div class="form">
-            <h3>Add Transaction</h3>
-            <div class="form-control">
-                <label for="text">Description</label>
-                <input type="text" id="text" placeholder="Enter description">
-            </div>
-            <div class="form-control">
-                <label for="amount">Amount <small>(negative - expense, positive - income)</small></label>
-                <input type="text" id="amount" placeholder="Enter amount">
-            </div>
-            <button class="btn" id="add-transaction">Add Transaction</button>
-        </div>
-        <div class="history">
-            <h3>Transaction History</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="list"></tbody>
-            </table>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
 
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
+
+  <div class="app-shell">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">💰</div>
+        <span class="brand-title">VaultFlow</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="transactions">
+          <span class="nav-icon">💳</span>
+          <span>Transactions</span>
+        </a>
+        <a class="nav-item" data-tab="analytics">
+          <span class="nav-icon">📈</span>
+          <span>Analytics & Reports</span>
+        </a>
+        <a class="nav-item" data-tab="budgets">
+          <span class="nav-icon">🎯</span>
+          <span>Budgets</span>
+        </a>
+        <a class="nav-item" data-tab="profile">
+          <span class="nav-icon">⚙️</span>
+          <span>Profile & Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card-mini">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-details">
+            <div class="user-name-text" id="sidebarUserName">User</div>
+            <div class="user-email-text" id="sidebarUserEmail">user@example.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+          <h1 class="page-heading" id="pageHeading">Dashboard Overview</h1>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn btn-outline btn-sm" id="exportCsvBtn" title="Export transactions as CSV">
+            <span>📥 Export CSV</span>
+          </button>
+          <button class="btn btn-primary btn-sm" id="openAddTxModalBtn">
+            <span>+ Add Transaction</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="logoutBtn" title="Logout">
+            <span>🚪 Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- App Views -->
+      <main class="content-area">
+
+        <!-- TAB 1: DASHBOARD OVERVIEW -->
+        <section id="tab-dashboard" class="tab-pane active">
+          
+          <!-- Dynamic Budget Alert Container -->
+          <div id="budgetAlertContainer"></div>
+
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Total Balance</div>
+                <div class="kpi-value" id="kpiBalance">$0.00</div>
+                <div class="kpi-badge neutral" id="kpiNetBadge">Net Savings</div>
+              </div>
+              <div class="kpi-icon-box icon-blue">💼</div>
+            </div>
+
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Total Income</div>
+                <div class="kpi-value tx-income" id="kpiIncome">$0.00</div>
+                <div class="kpi-badge positive" id="kpiMonthIncome">This month: $0.00</div>
+              </div>
+              <div class="kpi-icon-box icon-emerald">📈</div>
+            </div>
+
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Total Expenses</div>
+                <div class="kpi-value tx-expense" id="kpiExpense">$0.00</div>
+                <div class="kpi-badge negative" id="kpiMonthExpense">This month: $0.00</div>
+              </div>
+              <div class="kpi-icon-box icon-rose">📉</div>
+            </div>
+
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Savings Rate</div>
+                <div class="kpi-value" id="kpiSavingsRate">0.0%</div>
+                <div class="kpi-badge positive" id="kpiTxCount">0 Transactions</div>
+              </div>
+              <div class="kpi-icon-box icon-amber">🛡️</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="dashboard-grid-2">
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">📊 Cash Flow Comparison</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="incomeExpenseChart"></canvas>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3 class="card-title">🍩 Expense Distribution</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="categoryBreakdownChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3 class="card-title">🕒 Recent Transactions</h3>
+              <button class="btn btn-outline btn-sm" onclick="switchTab('transactions')">View All</button>
+            </div>
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTransactionsList">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: TRANSACTIONS MANAGEMENT -->
+        <section id="tab-transactions" class="tab-pane">
+          
+          <!-- Filters & Search Toolbar -->
+          <div class="filter-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="txSearchInput" class="search-input" placeholder="Search description..." />
+            </div>
+
+            <select id="txTypeFilter" class="filter-select">
+              <option value="">All Types</option>
+              <option value="INCOME">Income Only</option>
+              <option value="EXPENSE">Expense Only</option>
+            </select>
+
+            <select id="txCategoryFilter" class="filter-select">
+              <option value="">All Categories</option>
+              <option value="Salary">Salary & Income</option>
+              <option value="Food & Dining">Food & Dining</option>
+              <option value="Housing">Housing & Rent</option>
+              <option value="Utilities">Utilities & Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="General">General Expense</option>
+            </select>
+
+            <input type="date" id="txStartDate" class="filter-date" title="Start Date" />
+            <input type="date" id="txEndDate" class="filter-date" title="End Date" />
+
+            <button class="btn btn-secondary btn-sm" id="resetFiltersBtn">Reset</button>
+          </div>
+
+          <!-- All Transactions Table -->
+          <div class="dashboard-card">
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="allTransactionsList">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: ANALYTICS & REPORTS -->
+        <section id="tab-analytics" class="tab-pane">
+          
+          <!-- Trend Chart -->
+          <div class="dashboard-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">📈 6-Month Expenditure & Income Trend</h3>
+            </div>
+            <div class="chart-container" style="height: 320px;">
+              <canvas id="monthlyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Analytics Insights Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Top Expense Category</div>
+                <div class="kpi-value" id="topCategoryVal">--</div>
+              </div>
+              <div class="kpi-icon-box icon-rose">🏷️</div>
+            </div>
+
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Avg. Monthly Spending</div>
+                <div class="kpi-value" id="avgMonthlySpendVal">$0.00</div>
+              </div>
+              <div class="kpi-icon-box icon-amber">📅</div>
+            </div>
+
+            <div class="kpi-card">
+              <div>
+                <div class="kpi-label">Net Lifetime Savings</div>
+                <div class="kpi-value" id="netLifetimeSavingsVal">$0.00</div>
+              </div>
+              <div class="kpi-icon-box icon-emerald">💰</div>
+            </div>
+          </div>
+
+          <!-- Category Breakdown Table -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3 class="card-title">📊 Spending by Category Summary</h3>
+            </div>
+            <div class="table-container">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Total Spent</th>
+                    <th>Percentage Share</th>
+                  </tr>
+                </thead>
+                <tbody id="categoryTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: MONTHLY BUDGETS -->
+        <section id="tab-budgets" class="tab-pane">
+          <div class="card-header" style="margin-bottom: 20px;">
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700;">Monthly Spending Limits</h2>
+              <p style="font-size: 13px; color: var(--text-muted);">Set category limits to track budget utilization and avoid overspending.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="openAddBudgetModalBtn">+ Set New Budget</button>
+          </div>
+
+          <div class="budget-grid" id="budgetCardsGrid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- TAB 5: PROFILE & SETTINGS -->
+        <section id="tab-profile" class="tab-pane">
+          <div class="dashboard-grid-2">
+            
+            <!-- User Information & Edit -->
+            <div class="dashboard-card">
+              <h3 class="card-title" style="margin-bottom: 18px;">👤 User Profile</h3>
+              <form id="updateProfileForm">
+                <div class="form-group">
+                  <label class="form-label">Username</label>
+                  <input type="text" id="profileUsername" class="form-input" disabled />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" id="profileName" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email Address</label>
+                  <input type="email" id="profileEmail" class="form-input" required />
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save Profile Changes</button>
+              </form>
+            </div>
+
+            <!-- Password Change -->
+            <div class="dashboard-card">
+              <h3 class="card-title" style="margin-bottom: 18px;">🔒 Change Password</h3>
+              <form id="changePasswordForm">
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input type="password" id="currentPassword" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input type="password" id="newPassword" class="form-input" required minlength="6" />
+                </div>
+                <button type="submit" class="btn btn-secondary btn-sm">Update Password</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ADD / EDIT TRANSACTION
+       ========================================================================== -->
+  <div class="modal-overlay" id="txModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="txModalTitle">Add Transaction</h3>
+        <button class="modal-close-btn" id="closeTxModalBtn">&times;</button>
+      </div>
+      <form id="txForm">
+        <div class="modal-body">
+          <input type="hidden" id="editTxId" />
+
+          <!-- Type Selection: Income vs Expense -->
+          <label class="form-label">Transaction Type</label>
+          <div class="type-toggle-group">
+            <button type="button" class="type-toggle-btn active expense" id="typeExpenseBtn">Expense</button>
+            <button type="button" class="type-toggle-btn" id="typeIncomeBtn">Income</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txAmount">Amount ($)</label>
+            <input type="number" step="0.01" min="0.01" id="txAmount" class="form-input" placeholder="0.00" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txDescription">Description</label>
+            <input type="text" id="txDescription" class="form-input" placeholder="e.g. Grocery, Rent, Salary" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txCategory">Category</label>
+            <select id="txCategory" class="form-select" required>
+              <option value="Food & Dining">Food & Dining</option>
+              <option value="Housing">Housing & Rent</option>
+              <option value="Utilities">Utilities & Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Salary">Salary & Income</option>
+              <option value="Investments">Investments</option>
+              <option value="General">General Expense</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="txDate">Transaction Date</label>
+            <input type="date" id="txDate" class="form-input" required />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" id="cancelTxModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="saveTxBtn">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: SET BUDGET
+       ========================================================================== -->
+  <div class="modal-overlay" id="budgetModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Set Monthly Budget</h3>
+        <button class="modal-close-btn" id="closeBudgetModalBtn">&times;</button>
+      </div>
+      <form id="budgetForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="budgetCategory">Category</label>
+            <select id="budgetCategory" class="form-select" required>
+              <option value="Food & Dining">Food & Dining</option>
+              <option value="Housing">Housing & Rent</option>
+              <option value="Utilities">Utilities & Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="budgetLimit">Monthly Spending Limit ($)</label>
+            <input type="number" step="0.01" min="1" id="budgetLimit" class="form-input" placeholder="e.g. 500.00" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="budgetMonth">Month</label>
+            <select id="budgetMonth" class="form-select">
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" id="cancelBudgetModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Set Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>
