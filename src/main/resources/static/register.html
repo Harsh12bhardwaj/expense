@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - VaultFlow Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+
+  <div id="toast-container"></div>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand-logo">
+        <div class="brand-icon">₹</div>
+        <span class="brand-title">VaultFlow</span>
+      </div>
+      <p class="auth-subtitle">Create your personal financial account (INR)</p>
+    </div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          class="form-input" 
+          placeholder="e.g. Alex Morgan" 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          class="form-input" 
+          placeholder="Choose a username" 
+          autocomplete="username"
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="form-input" 
+          placeholder="alex@example.com" 
+          autocomplete="email"
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-with-icon">
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input" 
+            placeholder="At least 6 characters" 
+            autocomplete="new-password"
+            required 
+          />
+          <button type="button" class="toggle-password-btn" id="togglePasswordBtn">👁️</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          class="form-input" 
+          placeholder="Repeat password" 
+          autocomplete="new-password"
+          required 
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">
+        <span id="btnText">Create Account</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="login.html">Sign In</a>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === "file:" || window.location.port === "3000")
+      ? "http://localhost:8080/ExpTrack"
+      : `${window.location.origin}/ExpTrack`;
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      const icons = { success: '✅', error: '⚠️', warning: '🔔', info: 'ℹ️' };
+      toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><div>${message}</div>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    togglePasswordBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const confirmPassword = document.getElementById('confirmPassword').value.trim();
+      const submitBtn = document.getElementById('registerSubmitBtn');
+      const btnText = document.getElementById('btnText');
+
+      if (!username || !email || !password || !confirmPassword) {
+        showToast('Please fill in all required fields.', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters long.', 'warning');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.textContent = 'Creating account...';
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, email, password })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Registration failed');
+        }
+
+        showToast('Registration successful! Redirecting to login...', 'success');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1200);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+        submitBtn.disabled = false;
+        btnText.textContent = 'Create Account';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - VaultFlow Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+
+  <div id="toast-container"></div>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand-logo">
+        <div class="brand-icon">₹</div>
+        <span class="brand-title">VaultFlow</span>
+      </div>
+      <p class="auth-subtitle">India's Personal Finance & Expense Manager</p>
+    </div>
+
+    <!-- Demo Credentials Quick Pill -->
+    <div class="demo-credentials">
+      <span>💡 Demo: <strong>sarah</strong> / <strong>Password123</strong></span>
+      <button type="button" class="demo-btn-fill" id="fillDemoBtn">Use Demo</button>
+    </div>
+
+    <form id="loginForm" style="margin-top: 18px;">
+      <div class="form-group">
+        <label for="username" class="form-label">Username or Email</label>
+        <input 
+          type="text" 
+          id="username" 
+          class="form-input" 
+          placeholder="e.g. sarah" 
+          autocomplete="username"
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-with-icon">
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input" 
+            placeholder="••••••••" 
+            autocomplete="current-password"
+            required 
+          />
+          <button type="button" class="toggle-password-btn" id="togglePasswordBtn" title="Toggle password visibility">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+        <span id="btnText">Sign In</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Create an account</a>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === "file:" || window.location.port === "3000")
+      ? "http://localhost:8080/ExpTrack"
+      : `${window.location.origin}/ExpTrack`;
+
+    // Auto redirect if already logged in
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      window.location.href = "expense_tracker.html";
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      const icons = { success: '✅', error: '⚠️', warning: '🔔', info: 'ℹ️' };
+      toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><div>${message}</div>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Toggle password
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    togglePasswordBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    // Fill demo account
+    document.getElementById('fillDemoBtn').addEventListener('click', () => {
+      document.getElementById('username').value = 'sarah';
+      document.getElementById('password').value = 'Password123';
+      showToast('Demo credentials filled!', 'info');
+    });
+
+    // Handle Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const btnText = document.getElementById('btnText');
+
+      if (!username || !password) {
+        showToast('Please enter both username and password.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Invalid username or password');
+        }
+
+        const authData = result.data || result;
+        localStorage.setItem('user', authData.username);
+        localStorage.setItem('userName', authData.name || authData.username);
+        localStorage.setItem('userEmail', authData.email || '');
+        if (authData.token) localStorage.setItem('token', authData.token);
+
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = 'expense_tracker.html';
+        }, 600);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+        submitBtn.disabled = false;
+        btnText.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -96,7 +96,9 @@
   </div>
 
   <script>
-    const API_BASE = "http://localhost:8080/ExpTrack";
+    const API_BASE = (window.location.protocol === "file:" || window.location.port === "3000")
+      ? "http://localhost:8080/ExpTrack"
+      : `${window.location.origin}/ExpTrack`;
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');

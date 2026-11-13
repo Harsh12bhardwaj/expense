@@ -3,7 +3,10 @@
  * Currency: INR (₹) | Locale: en-IN | Timezone: Asia/Kolkata | Format: DD-MM-YYYY
  */
 
-const API_BASE = "http://localhost:8080/ExpTrack";
+// Dynamically resolve API_BASE for both local dev and cloud deployment (Render, Railway, etc.)
+const API_BASE = (window.location.protocol === "file:" || window.location.port === "3000")
+  ? "http://localhost:8080/ExpTrack"
+  : `${window.location.origin}/ExpTrack`;
 
 // Verify Authentication
 const username = localStorage.getItem("user");
