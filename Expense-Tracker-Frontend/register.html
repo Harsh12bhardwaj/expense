@@ -42,6 +42,8 @@
           class="form-input" 
           placeholder="Choose a username" 
           autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
           required 
         />
       </div>
@@ -164,10 +166,18 @@
           throw new Error(result.message || 'Registration failed');
         }
 
-        showToast('Registration successful! Redirecting to login...', 'success');
+        const authData = result.data || result;
+        if (authData && authData.username) {
+          localStorage.setItem('user', authData.username);
+          localStorage.setItem('userName', authData.name || authData.username);
+          localStorage.setItem('userEmail', authData.email || '');
+          if (authData.token) localStorage.setItem('token', authData.token);
+        }
+
+        showToast('Registration successful! Redirecting to dashboard...', 'success');
         setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1200);
+          window.location.href = 'expense_tracker.html';
+        }, 800);
 
       } catch (err) {
         showToast(err.message, 'error');

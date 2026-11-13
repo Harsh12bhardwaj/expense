@@ -34,10 +34,10 @@ public class UserService {
         String username = request.getUsername().trim();
         String email = request.getEmail().trim().toLowerCase();
 
-        if (userRepository.existsByUsername(username)) {
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
             throw new BadRequestException("Username '" + username + "' is already taken.");
         }
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new BadRequestException("Email '" + email + "' is already registered.");
         }
 
@@ -86,8 +86,8 @@ public class UserService {
 
     public AuthResponse login(LoginRequest request) {
         String identifier = request.getUsername().trim();
-        User user = userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier.toLowerCase()))
+        User user = userRepository.findByUsernameIgnoreCase(identifier)
+                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
                 .orElseThrow(() -> new UnauthorizedException("Invalid username or password"));
 
         // Match password with BCrypt (or fallback to plain text if migrated from old records)
@@ -108,7 +108,9 @@ public class UserService {
 
     // Backward-compatible login method returning User
     public User login(String username, String password) {
-        User user = userRepository.findByUsername(username)
+        String identifier = username != null ? username.trim() : "";
+        User user = userRepository.findByUsernameIgnoreCase(identifier)
+                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
                 .orElseThrow(() -> new UnauthorizedException("Invalid username or password"));
 
         boolean matches = passwordEncoder.matches(password, user.getPassword());
@@ -127,7 +129,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserProfileDto getProfile(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
         long count = transactionRepository.findByUserUsername(username).size();
