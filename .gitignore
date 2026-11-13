@@ -12,8 +12,8 @@ target/
 mvnw.cmd
 mvnw
 
-# Ignore application properties (contains DB credentials)
-application.properties
+# Ignore application properties containing secret credentials (use env vars in production)
+# application.properties (tracked template)
 
 # ========================
 # IDE files

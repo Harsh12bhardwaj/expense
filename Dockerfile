@@ -26,7 +26,7 @@ EXPOSE 8080
 
 # Environment variables
 ENV PORT=8080
-ENV SPRING_PROFILES_ACTIVE=mysql
+ENV SPRING_PROFILES_ACTIVE=h2
 ENV JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Xms256m -Xmx512m"
 
 # Launch application
