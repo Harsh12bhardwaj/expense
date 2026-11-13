@@ -106,11 +106,17 @@ public class TransactionServiceImpl implements TransactionService {
 
         LocalDate date = request.getDate() != null ? request.getDate() : LocalDate.now();
 
+        String paymentMethod = request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
+                ? request.getPaymentMethod().trim() : "UPI";
+        String upiApp = request.getUpiApp() != null ? request.getUpiApp().trim() : null;
+
         Transaction transaction = Transaction.builder()
                 .description(request.resolveDescription())
                 .amount(amount)
                 .type(type)
                 .category(category)
+                .paymentMethod(paymentMethod)
+                .upiApp(upiApp)
                 .date(date)
                 .createdAt(LocalDateTime.now())
                 .user(user)
@@ -144,6 +150,14 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (request.getCategory() != null && !request.getCategory().isBlank()) {
             transaction.setCategory(request.getCategory().trim());
+        }
+
+        if (request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()) {
+            transaction.setPaymentMethod(request.getPaymentMethod().trim());
+        }
+
+        if (request.getUpiApp() != null) {
+            transaction.setUpiApp(request.getUpiApp().trim());
         }
 
         if (request.getDate() != null) {

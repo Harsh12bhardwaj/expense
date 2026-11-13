@@ -25,6 +25,10 @@ public class TransactionRequest {
 
     private String category;
 
+    private String paymentMethod;
+
+    private String upiApp;
+
     private LocalDate date;
 
     public String resolveDescription() {

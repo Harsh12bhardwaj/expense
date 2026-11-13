@@ -41,6 +41,12 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
+
+    @Column(name = "upi_app", length = 50)
+    private String upiApp;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -67,6 +73,9 @@ public class Transaction {
         if (category == null || category.isBlank()) {
             category = "General";
         }
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            paymentMethod = "UPI";
+        }
         if (date == null) {
             date = LocalDate.now();
         }
@@ -87,6 +96,9 @@ public class Transaction {
     protected void onUpdate() {
         if (category == null || category.isBlank()) {
             category = "General";
+        }
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            paymentMethod = "UPI";
         }
         amount = Math.abs(amount);
     }

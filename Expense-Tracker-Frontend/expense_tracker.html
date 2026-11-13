@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VaultFlow - Financial Dashboard</title>
+  <title>VaultFlow - India Personal Finance Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <div class="brand-icon">💰</div>
+        <div class="brand-icon">₹</div>
         <span class="brand-title">VaultFlow</span>
       </div>
 
@@ -40,7 +40,7 @@
         </a>
         <a class="nav-item" data-tab="budgets">
           <span class="nav-icon">🎯</span>
-          <span>Budgets</span>
+          <span>Monthly Budgets</span>
         </a>
         <a class="nav-item" data-tab="profile">
           <span class="nav-icon">⚙️</span>
@@ -70,7 +70,7 @@
         </div>
 
         <div class="topbar-right">
-          <button class="btn btn-outline btn-sm" id="exportCsvBtn" title="Export transactions as CSV">
+          <button class="btn btn-outline btn-sm" id="exportCsvBtn" title="Export transactions as CSV with INR format">
             <span>📥 Export CSV</span>
           </button>
           <button class="btn btn-primary btn-sm" id="openAddTxModalBtn">
@@ -91,12 +91,12 @@
           <!-- Dynamic Budget Alert Container -->
           <div id="budgetAlertContainer"></div>
 
-          <!-- KPI Cards Grid -->
+          <!-- KPI Cards Grid (INR / en-IN) -->
           <div class="kpi-grid">
             <div class="kpi-card">
               <div>
                 <div class="kpi-label">Total Balance</div>
-                <div class="kpi-value" id="kpiBalance">$0.00</div>
+                <div class="kpi-value" id="kpiBalance">₹0.00</div>
                 <div class="kpi-badge neutral" id="kpiNetBadge">Net Savings</div>
               </div>
               <div class="kpi-icon-box icon-blue">💼</div>
@@ -105,8 +105,8 @@
             <div class="kpi-card">
               <div>
                 <div class="kpi-label">Total Income</div>
-                <div class="kpi-value tx-income" id="kpiIncome">$0.00</div>
-                <div class="kpi-badge positive" id="kpiMonthIncome">This month: $0.00</div>
+                <div class="kpi-value tx-income" id="kpiIncome">₹0.00</div>
+                <div class="kpi-badge positive" id="kpiMonthIncome">This month: ₹0.00</div>
               </div>
               <div class="kpi-icon-box icon-emerald">📈</div>
             </div>
@@ -114,15 +114,15 @@
             <div class="kpi-card">
               <div>
                 <div class="kpi-label">Total Expenses</div>
-                <div class="kpi-value tx-expense" id="kpiExpense">$0.00</div>
-                <div class="kpi-badge negative" id="kpiMonthExpense">This month: $0.00</div>
+                <div class="kpi-value tx-expense" id="kpiExpense">₹0.00</div>
+                <div class="kpi-badge negative" id="kpiMonthExpense">This month: ₹0.00</div>
               </div>
               <div class="kpi-icon-box icon-rose">📉</div>
             </div>
 
             <div class="kpi-card">
               <div>
-                <div class="kpi-label">Savings Rate</div>
+                <div class="kpi-label">Monthly Savings Rate</div>
                 <div class="kpi-value" id="kpiSavingsRate">0.0%</div>
                 <div class="kpi-badge positive" id="kpiTxCount">0 Transactions</div>
               </div>
@@ -134,7 +134,7 @@
           <div class="dashboard-grid-2">
             <div class="dashboard-card">
               <div class="card-header">
-                <h3 class="card-title">📊 Cash Flow Comparison</h3>
+                <h3 class="card-title">📊 Cash Flow Comparison (₹)</h3>
               </div>
               <div class="chart-container">
                 <canvas id="incomeExpenseChart"></canvas>
@@ -161,9 +161,10 @@
               <table class="modern-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
+                    <th>Date (DD-MM-YYYY)</th>
                     <th>Description</th>
                     <th>Category</th>
+                    <th>Payment Method</th>
                     <th>Type</th>
                     <th>Amount</th>
                     <th>Actions</th>
@@ -195,15 +196,47 @@
 
             <select id="txCategoryFilter" class="filter-select">
               <option value="">All Categories</option>
-              <option value="Salary">Salary & Income</option>
-              <option value="Food & Dining">Food & Dining</option>
-              <option value="Housing">Housing & Rent</option>
-              <option value="Utilities">Utilities & Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="General">General Expense</option>
+              <optgroup label="Essential Expenses">
+                <option value="Groceries">Groceries</option>
+                <option value="Vegetables & Fruits">Vegetables & Fruits</option>
+                <option value="Rent">Rent</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Water Bill">Water Bill</option>
+                <option value="Gas Cylinder">Gas Cylinder</option>
+                <option value="Internet & Mobile Recharge">Internet & Mobile Recharge</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Medical & Healthcare">Medical & Healthcare</option>
+                <option value="Education">Education</option>
+              </optgroup>
+              <optgroup label="Lifestyle">
+                <option value="Restaurants & Dining">Restaurants & Dining</option>
+                <option value="Food Delivery">Food Delivery</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Travel">Travel</option>
+                <option value="Gym & Fitness">Gym & Fitness</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Subscriptions">Subscriptions</option>
+              </optgroup>
+              <optgroup label="Financial">
+                <option value="EMI & Loan Payments">EMI & Loan Payments</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Investments">Investments</option>
+                <option value="Savings">Savings</option>
+                <option value="Bank Charges">Bank Charges</option>
+                <option value="Taxes">Taxes</option>
+              </optgroup>
+              <optgroup label="Income Sources">
+                <option value="Salary">Salary</option>
+                <option value="Freelancing">Freelancing</option>
+                <option value="Business Income">Business Income</option>
+                <option value="Internship Stipend">Internship Stipend</option>
+                <option value="Scholarship">Scholarship</option>
+                <option value="Interest Income">Interest Income</option>
+                <option value="Rental Income">Rental Income</option>
+                <option value="Investment Returns">Investment Returns</option>
+              </optgroup>
             </select>
 
             <input type="date" id="txStartDate" class="filter-date" title="Start Date" />
@@ -218,9 +251,10 @@
               <table class="modern-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
+                    <th>Date (DD-MM-YYYY)</th>
                     <th>Description</th>
                     <th>Category</th>
+                    <th>Payment Method</th>
                     <th>Type</th>
                     <th>Amount</th>
                     <th>Actions</th>
@@ -240,7 +274,7 @@
           <!-- Trend Chart -->
           <div class="dashboard-card" style="margin-bottom: 24px;">
             <div class="card-header">
-              <h3 class="card-title">📈 6-Month Expenditure & Income Trend</h3>
+              <h3 class="card-title">📈 6-Month Expenditure & Income Trend (₹)</h3>
             </div>
             <div class="chart-container" style="height: 320px;">
               <canvas id="monthlyTrendChart"></canvas>
@@ -260,7 +294,7 @@
             <div class="kpi-card">
               <div>
                 <div class="kpi-label">Avg. Monthly Spending</div>
-                <div class="kpi-value" id="avgMonthlySpendVal">$0.00</div>
+                <div class="kpi-value" id="avgMonthlySpendVal">₹0.00</div>
               </div>
               <div class="kpi-icon-box icon-amber">📅</div>
             </div>
@@ -268,7 +302,7 @@
             <div class="kpi-card">
               <div>
                 <div class="kpi-label">Net Lifetime Savings</div>
-                <div class="kpi-value" id="netLifetimeSavingsVal">$0.00</div>
+                <div class="kpi-value" id="netLifetimeSavingsVal">₹0.00</div>
               </div>
               <div class="kpi-icon-box icon-emerald">💰</div>
             </div>
@@ -284,7 +318,7 @@
                 <thead>
                   <tr>
                     <th>Category</th>
-                    <th>Total Spent</th>
+                    <th>Total Spent (₹)</th>
                     <th>Percentage Share</th>
                   </tr>
                 </thead>
@@ -300,8 +334,8 @@
         <section id="tab-budgets" class="tab-pane">
           <div class="card-header" style="margin-bottom: 20px;">
             <div>
-              <h2 style="font-size: 18px; font-weight: 700;">Monthly Spending Limits</h2>
-              <p style="font-size: 13px; color: var(--text-muted);">Set category limits to track budget utilization and avoid overspending.</p>
+              <h2 style="font-size: 18px; font-weight: 700;">Monthly Spending Limits (₹)</h2>
+              <p style="font-size: 13px; color: var(--text-muted);">Set category limits in Indian Rupees to track budget utilization and avoid overspending.</p>
             </div>
             <button class="btn btn-primary btn-sm" id="openAddBudgetModalBtn">+ Set New Budget</button>
           </div>
@@ -330,6 +364,10 @@
                 <div class="form-group">
                   <label class="form-label">Email Address</label>
                   <input type="email" id="profileEmail" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Default Currency & Region</label>
+                  <input type="text" class="form-input" value="Indian Rupee (INR - ₹) / Asia/Kolkata" disabled />
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">Save Profile Changes</button>
               </form>
@@ -378,29 +416,57 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="txAmount">Amount ($)</label>
-            <input type="number" step="0.01" min="0.01" id="txAmount" class="form-input" placeholder="0.00" required />
+            <label class="form-label" for="txAmount">Amount (₹)</label>
+            <input type="number" step="0.01" min="0.01" id="txAmount" class="form-input" placeholder="e.g. 1500.00" required />
           </div>
 
           <div class="form-group">
             <label class="form-label" for="txDescription">Description</label>
-            <input type="text" id="txDescription" class="form-input" placeholder="e.g. Grocery, Rent, Salary" required />
+            <input type="text" id="txDescription" class="form-input" placeholder="e.g. Groceries at DMart, Electricity Bill, Salary" required />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="txCategory">Category</label>
-            <select id="txCategory" class="form-select" required>
-              <option value="Food & Dining">Food & Dining</option>
-              <option value="Housing">Housing & Rent</option>
-              <option value="Utilities">Utilities & Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Salary">Salary & Income</option>
-              <option value="Investments">Investments</option>
-              <option value="General">General Expense</option>
+            <label class="form-label" for="txCategorySelect">Category</label>
+            <select id="txCategorySelect" class="form-select" required>
+              <!-- Populated dynamically based on Income / Expense toggle -->
             </select>
+          </div>
+
+          <div class="form-group" id="customCategoryGroup" style="display: none;">
+            <label class="form-label" for="txCustomCategory">Custom Category Name</label>
+            <input type="text" id="txCustomCategory" class="form-input" placeholder="Enter custom category name" />
+          </div>
+
+          <!-- Payment Method (Indian Options) -->
+          <div class="form-group">
+            <label class="form-label" for="txPaymentMethod">Payment Method</label>
+            <select id="txPaymentMethod" class="form-select">
+              <option value="UPI">UPI</option>
+              <option value="Cash">Cash</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Net Banking">Net Banking</option>
+              <option value="IMPS">IMPS</option>
+              <option value="NEFT">NEFT</option>
+              <option value="RTGS">RTGS</option>
+              <option value="Mobile Wallet">Mobile Wallet</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- UPI App (shown when UPI is selected) -->
+          <div class="form-group" id="upiAppGroup">
+            <label class="form-label" for="txUpiApp">UPI Application (Optional)</label>
+            <input list="upiAppList" id="txUpiApp" class="form-input" placeholder="e.g. Google Pay, PhonePe, Paytm, BHIM" />
+            <datalist id="upiAppList">
+              <option value="Google Pay">
+              <option value="PhonePe">
+              <option value="Paytm">
+              <option value="BHIM">
+              <option value="Cred">
+              <option value="Amazon Pay">
+              <option value="WhatsApp Pay">
+            </datalist>
           </div>
 
           <div class="form-group">
@@ -423,28 +489,57 @@
   <div class="modal-overlay" id="budgetModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title">Set Monthly Budget</h3>
+        <h3 class="modal-title">Set Monthly Budget (₹)</h3>
         <button class="modal-close-btn" id="closeBudgetModalBtn">&times;</button>
       </div>
       <form id="budgetForm">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label" for="budgetCategory">Category</label>
-            <select id="budgetCategory" class="form-select" required>
-              <option value="Food & Dining">Food & Dining</option>
-              <option value="Housing">Housing & Rent</option>
-              <option value="Utilities">Utilities & Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="General">General</option>
+            <label class="form-label" for="budgetCategorySelect">Category</label>
+            <select id="budgetCategorySelect" class="form-select" required>
+              <optgroup label="Essential Expenses">
+                <option value="Groceries">Groceries</option>
+                <option value="Vegetables & Fruits">Vegetables & Fruits</option>
+                <option value="Rent">Rent</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Water Bill">Water Bill</option>
+                <option value="Gas Cylinder">Gas Cylinder</option>
+                <option value="Internet & Mobile Recharge">Internet & Mobile Recharge</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Medical & Healthcare">Medical & Healthcare</option>
+                <option value="Education">Education</option>
+              </optgroup>
+              <optgroup label="Lifestyle">
+                <option value="Restaurants & Dining">Restaurants & Dining</option>
+                <option value="Food Delivery">Food Delivery</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Travel">Travel</option>
+                <option value="Gym & Fitness">Gym & Fitness</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Subscriptions">Subscriptions</option>
+              </optgroup>
+              <optgroup label="Financial">
+                <option value="EMI & Loan Payments">EMI & Loan Payments</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Investments">Investments</option>
+                <option value="Savings">Savings</option>
+                <option value="Bank Charges">Bank Charges</option>
+                <option value="Taxes">Taxes</option>
+              </optgroup>
+              <option value="__CUSTOM__">+ Custom Category...</option>
             </select>
           </div>
 
+          <div class="form-group" id="budgetCustomCategoryGroup" style="display: none;">
+            <label class="form-label" for="budgetCustomCategory">Custom Category Name</label>
+            <input type="text" id="budgetCustomCategory" class="form-input" placeholder="e.g. Festival Expenses, Pet Care" />
+          </div>
+
           <div class="form-group">
-            <label class="form-label" for="budgetLimit">Monthly Spending Limit ($)</label>
-            <input type="number" step="0.01" min="1" id="budgetLimit" class="form-input" placeholder="e.g. 500.00" required />
+            <label class="form-label" for="budgetLimit">Monthly Spending Limit (₹)</label>
+            <input type="number" step="0.01" min="1" id="budgetLimit" class="form-input" placeholder="e.g. 10000.00" required />
           </div>
 
           <div class="form-group">

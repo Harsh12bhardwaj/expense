@@ -21,6 +21,8 @@ public class TransactionResponse {
     private double amount;
     private TransactionType type;
     private String category;
+    private String paymentMethod;
+    private String upiApp;
     private LocalDate date;
     private LocalDateTime createdAt;
 
@@ -32,6 +34,8 @@ public class TransactionResponse {
                 .amount(t.getAmount())
                 .type(t.getType())
                 .category(t.getCategory())
+                .paymentMethod(t.getPaymentMethod())
+                .upiApp(t.getUpiApp())
                 .date(t.getDate())
                 .createdAt(t.getCreatedAt())
                 .build();

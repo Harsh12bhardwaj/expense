@@ -107,28 +107,34 @@ class ExpenseTrackerApplicationTests {
         // 1. Add Income
         TransactionRequest incomeReq = TransactionRequest.builder()
                 .description("Monthly Salary")
-                .amount(5000.0)
+                .amount(50000.0)
                 .type(TransactionType.INCOME)
                 .category("Salary")
+                .paymentMethod("Net Banking")
                 .date(LocalDate.now())
                 .build();
         TransactionResponse income = transactionService.createTransaction(incomeReq, testUser);
         assertNotNull(income.getId());
-        assertEquals(5000.0, income.getAmount());
+        assertEquals(50000.0, income.getAmount());
         assertEquals(TransactionType.INCOME, income.getType());
+        assertEquals("Net Banking", income.getPaymentMethod());
 
         // 2. Add Expense
         TransactionRequest expenseReq = TransactionRequest.builder()
                 .description("Grocery Store")
-                .amount(300.0)
+                .amount(3000.0)
                 .type(TransactionType.EXPENSE)
-                .category("Food & Dining")
+                .category("Groceries")
+                .paymentMethod("UPI")
+                .upiApp("Google Pay")
                 .date(LocalDate.now())
                 .build();
         TransactionResponse expense = transactionService.createTransaction(expenseReq, testUser);
         assertNotNull(expense.getId());
-        assertEquals(300.0, expense.getAmount());
+        assertEquals(3000.0, expense.getAmount());
         assertEquals(TransactionType.EXPENSE, expense.getType());
+        assertEquals("UPI", expense.getPaymentMethod());
+        assertEquals("Google Pay", expense.getUpiApp());
 
         // 3. Edit Expense
         TransactionRequest updateReq = TransactionRequest.builder()

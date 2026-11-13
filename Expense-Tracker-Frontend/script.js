@@ -1,5 +1,6 @@
 /**
- * VaultFlow Expense Tracker - Modern Dashboard Application Logic
+ * VaultFlow - India-First Personal Finance Application Logic
+ * Currency: INR (₹) | Locale: en-IN | Timezone: Asia/Kolkata | Format: DD-MM-YYYY
  */
 
 const API_BASE = "http://localhost:8080/ExpTrack";
@@ -19,6 +20,28 @@ let trendChartInstance = null;
 let currentSelectedType = "EXPENSE"; // Default for new transactions
 let currentTab = "dashboard";
 
+// --------------------------------------------------------------------------
+// Reusable Currency & Date Formatting Utilities (en-IN)
+// --------------------------------------------------------------------------
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 2,
+});
+
+function formatCurrency(amount) {
+  return inrFormatter.format(amount || 0);
+}
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
+  }
+  return dateStr;
+}
+
 // Toast Notification Helper
 function showToast(message, type = "info") {
   const container = document.getElementById("toast-container");
@@ -30,7 +53,7 @@ function showToast(message, type = "info") {
     success: "✅",
     error: "⚠️",
     warning: "🔔",
-    info: "ℹ️"
+    info: "ℹ️",
   };
 
   toast.innerHTML = `
@@ -48,12 +71,108 @@ function showToast(message, type = "info") {
   }, 3500);
 }
 
-// Currency Formatter
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount || 0);
+// --------------------------------------------------------------------------
+// Indian Categories Data Structure
+// --------------------------------------------------------------------------
+const INDIAN_EXPENSE_CATEGORIES = [
+  {
+    group: "Essential Expenses",
+    items: [
+      "Groceries",
+      "Vegetables & Fruits",
+      "Rent",
+      "Electricity",
+      "Water Bill",
+      "Gas Cylinder",
+      "Internet & Mobile Recharge",
+      "Transportation",
+      "Fuel",
+      "Medical & Healthcare",
+      "Education",
+    ],
+  },
+  {
+    group: "Lifestyle",
+    items: [
+      "Restaurants & Dining",
+      "Food Delivery",
+      "Shopping",
+      "Entertainment",
+      "Travel",
+      "Gym & Fitness",
+      "Personal Care",
+      "Subscriptions",
+    ],
+  },
+  {
+    group: "Financial",
+    items: [
+      "EMI & Loan Payments",
+      "Insurance",
+      "Investments",
+      "Savings",
+      "Bank Charges",
+      "Taxes",
+    ],
+  },
+];
+
+const INDIAN_INCOME_CATEGORIES = [
+  {
+    group: "Income Sources",
+    items: [
+      "Salary",
+      "Freelancing",
+      "Business Income",
+      "Internship Stipend",
+      "Scholarship",
+      "Interest Income",
+      "Rental Income",
+      "Investment Returns",
+      "Other Income",
+    ],
+  },
+];
+
+function populateCategoryDropdown(type, selectedCategory = "") {
+  const select = document.getElementById("txCategorySelect");
+  const customGroup = document.getElementById("customCategoryGroup");
+  const customInput = document.getElementById("txCustomCategory");
+  select.innerHTML = "";
+
+  const list = type === "INCOME" ? INDIAN_INCOME_CATEGORIES : INDIAN_EXPENSE_CATEGORIES;
+  let found = false;
+
+  list.forEach((grp) => {
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = grp.group;
+    grp.items.forEach((item) => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      if (item.toLowerCase() === (selectedCategory || "").toLowerCase()) {
+        opt.selected = true;
+        found = true;
+      }
+      optgroup.appendChild(opt);
+    });
+    select.appendChild(optgroup);
+  });
+
+  // Custom Category option
+  const customOpt = document.createElement("option");
+  customOpt.value = "__CUSTOM__";
+  customOpt.textContent = "+ Custom Category...";
+  select.appendChild(customOpt);
+
+  if (selectedCategory && !found) {
+    customOpt.selected = true;
+    customGroup.style.display = "block";
+    customInput.value = selectedCategory;
+  } else {
+    customGroup.style.display = "none";
+    customInput.value = "";
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -62,17 +181,14 @@ function formatCurrency(amount) {
 function switchTab(tabId) {
   currentTab = tabId;
 
-  // Update nav links
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.toggle("active", item.getAttribute("data-tab") === tabId);
   });
 
-  // Update tab content
   document.querySelectorAll(".tab-pane").forEach((pane) => {
     pane.classList.toggle("active", pane.id === `tab-${tabId}`);
   });
 
-  // Update page heading
   const headings = {
     dashboard: "Dashboard Overview",
     transactions: "Transaction History",
@@ -82,14 +198,12 @@ function switchTab(tabId) {
   };
   document.getElementById("pageHeading").textContent = headings[tabId] || "Dashboard";
 
-  // Trigger tab-specific data load
   if (tabId === "dashboard") fetchDashboard();
   if (tabId === "transactions") fetchTransactions();
   if (tabId === "analytics") fetchAnalytics();
   if (tabId === "budgets") fetchBudgets();
   if (tabId === "profile") fetchProfile();
 
-  // Close mobile sidebar if open
   document.getElementById("sidebar").classList.remove("mobile-open");
 }
 
@@ -100,12 +214,10 @@ document.querySelectorAll(".nav-item").forEach((item) => {
   });
 });
 
-// Mobile menu toggle
 document.getElementById("mobileMenuBtn").addEventListener("click", () => {
   document.getElementById("sidebar").classList.toggle("mobile-open");
 });
 
-// Logout
 document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "login.html";
@@ -122,7 +234,7 @@ async function fetchDashboard() {
     if (!res.ok) throw new Error(result.message || "Failed to load dashboard data");
     const data = result.data;
 
-    // Update KPIs
+    // Update KPIs (Formatted in INR)
     document.getElementById("kpiBalance").textContent = formatCurrency(data.totalBalance);
     document.getElementById("kpiIncome").textContent = formatCurrency(data.totalIncome);
     document.getElementById("kpiExpense").textContent = formatCurrency(data.totalExpense);
@@ -134,7 +246,6 @@ async function fetchDashboard() {
     document.getElementById("kpiSavingsRate").textContent = `${savingsRate.toFixed(1)}%`;
     document.getElementById("kpiTxCount").textContent = `${data.totalTransactionCount} Transactions`;
 
-    // Net status badge
     const netBadge = document.getElementById("kpiNetBadge");
     if (data.totalBalance >= 0) {
       netBadge.className = "kpi-badge positive";
@@ -144,13 +255,8 @@ async function fetchDashboard() {
       netBadge.textContent = "Negative Balance";
     }
 
-    // Render Budget Alerts
     renderBudgetAlerts(data.budgetAlerts);
-
-    // Render Recent Transactions
     renderRecentTransactions(data.recentTransactions);
-
-    // Render Dashboard Charts
     renderIncomeExpenseChart(data.totalIncome, data.totalExpense);
     renderCategoryChart(data.categoryBreakdown);
 
@@ -176,7 +282,7 @@ function renderBudgetAlerts(alerts) {
         <span style="font-size: 20px;">${isExceeded ? "🚨" : "⚠️"}</span>
         <div>
           <strong>${alert.category} Budget Alert:</strong> 
-          Spent ${formatCurrency(alert.spent)} of ${formatCurrency(alert.monthlyLimit)} limit (${alert.percentageUsed}% utilized).
+          Spent ${formatCurrency(alert.spent)} of ${formatCurrency(alert.monthlyLimit)} limit (${alert.percentageUsed}% consumed).
         </div>
       </div>
       <button class="btn btn-sm ${isExceeded ? "btn-danger" : "btn-secondary"}" onclick="switchTab('budgets')">
@@ -194,9 +300,9 @@ function renderRecentTransactions(transactions) {
   if (!transactions || transactions.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-state">
+        <td colspan="7" class="empty-state">
           <div class="empty-icon">💸</div>
-          <p>No recent transactions found.</p>
+          <p>No recent transactions recorded.</p>
         </td>
       </tr>
     `;
@@ -207,10 +313,16 @@ function renderRecentTransactions(transactions) {
     const tr = document.createElement("tr");
     const isExpense = tx.type === "EXPENSE";
 
+    let paymentBadge = escapeHtml(tx.paymentMethod || "UPI");
+    if (tx.upiApp) {
+      paymentBadge += ` • ${escapeHtml(tx.upiApp)}`;
+    }
+
     tr.innerHTML = `
-      <td>${tx.date}</td>
+      <td>${formatDateDisplay(tx.date)}</td>
       <td><strong>${escapeHtml(tx.description || tx.text)}</strong></td>
       <td><span class="badge-category">🏷️ ${escapeHtml(tx.category || "General")}</span></td>
+      <td><span class="badge-category" style="background:#e0f2fe; color:#0369a1;">📱 ${paymentBadge}</span></td>
       <td><span class="kpi-badge ${isExpense ? "negative" : "positive"}">${tx.type}</span></td>
       <td class="tx-amount ${isExpense ? "tx-expense" : "tx-income"}">
         ${isExpense ? "-" : "+"}${formatCurrency(tx.amount)}
@@ -227,7 +339,7 @@ function renderRecentTransactions(transactions) {
 }
 
 // --------------------------------------------------------------------------
-// Charts Rendering
+// Charts Rendering (INR & en-IN Locale)
 // --------------------------------------------------------------------------
 function renderIncomeExpenseChart(income, expense) {
   const canvas = document.getElementById("incomeExpenseChart");
@@ -244,7 +356,7 @@ function renderIncomeExpenseChart(income, expense) {
       labels: ["Total Income", "Total Expenses"],
       datasets: [
         {
-          label: "Amount ($)",
+          label: "Amount (₹)",
           data: [income || 0, expense || 0],
           backgroundColor: ["#10b981", "#ef4444"],
           borderRadius: 8,
@@ -268,7 +380,7 @@ function renderIncomeExpenseChart(income, expense) {
           beginAtZero: true,
           grid: { color: "#f1f5f9" },
           ticks: {
-            callback: (value) => `$${value}`,
+            callback: (value) => formatCurrency(value),
           },
         },
         x: {
@@ -308,7 +420,8 @@ function renderCategoryChart(categories) {
   const data = categories.map((c) => c.amount);
   const palette = [
     "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#0ea5e9",
-    "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#64748b"
+    "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#64748b",
+    "#06b6d4", "#84cc16", "#d946ef"
   ];
 
   categoryChartInstance = new Chart(ctx, {
@@ -330,7 +443,7 @@ function renderCategoryChart(categories) {
       plugins: {
         legend: {
           position: "bottom",
-          labels: { boxWidth: 12, padding: 12, font: { size: 11 } },
+          labels: { boxWidth: 12, padding: 10, font: { size: 11 } },
         },
         tooltip: {
           callbacks: {
@@ -370,9 +483,9 @@ async function fetchTransactions() {
     if (!transactions || transactions.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="empty-state">
+          <td colspan="7" class="empty-state">
             <div class="empty-icon">🔍</div>
-            <p>No transactions match your filters.</p>
+            <p>No transactions match your search criteria.</p>
           </td>
         </tr>
       `;
@@ -383,10 +496,16 @@ async function fetchTransactions() {
       const tr = document.createElement("tr");
       const isExpense = tx.type === "EXPENSE";
 
+      let paymentBadge = escapeHtml(tx.paymentMethod || "UPI");
+      if (tx.upiApp) {
+        paymentBadge += ` • ${escapeHtml(tx.upiApp)}`;
+      }
+
       tr.innerHTML = `
-        <td>${tx.date}</td>
+        <td>${formatDateDisplay(tx.date)}</td>
         <td><strong>${escapeHtml(tx.description || tx.text)}</strong></td>
         <td><span class="badge-category">🏷️ ${escapeHtml(tx.category || "General")}</span></td>
+        <td><span class="badge-category" style="background:#e0f2fe; color:#0369a1;">📱 ${paymentBadge}</span></td>
         <td><span class="kpi-badge ${isExpense ? "negative" : "positive"}">${tx.type}</span></td>
         <td class="tx-amount ${isExpense ? "tx-expense" : "tx-income"}">
           ${isExpense ? "-" : "+"}${formatCurrency(tx.amount)}
@@ -407,7 +526,6 @@ async function fetchTransactions() {
   }
 }
 
-// Filter listeners
 document.getElementById("txSearchInput").addEventListener("input", debounce(fetchTransactions, 300));
 document.getElementById("txTypeFilter").addEventListener("change", fetchTransactions);
 document.getElementById("txCategoryFilter").addEventListener("change", fetchTransactions);
@@ -429,8 +547,12 @@ document.getElementById("resetFiltersBtn").addEventListener("click", () => {
 const txModal = document.getElementById("txModal");
 const typeExpenseBtn = document.getElementById("typeExpenseBtn");
 const typeIncomeBtn = document.getElementById("typeIncomeBtn");
+const txPaymentMethodSelect = document.getElementById("txPaymentMethod");
+const upiAppGroup = document.getElementById("upiAppGroup");
+const txCategorySelect = document.getElementById("txCategorySelect");
+const customCategoryGroup = document.getElementById("customCategoryGroup");
 
-function setTransactionType(type) {
+function setTransactionType(type, categoryToSelect = "") {
   currentSelectedType = type;
   if (type === "EXPENSE") {
     typeExpenseBtn.className = "type-toggle-btn active expense";
@@ -439,16 +561,38 @@ function setTransactionType(type) {
     typeIncomeBtn.className = "type-toggle-btn active income";
     typeExpenseBtn.className = "type-toggle-btn";
   }
+  populateCategoryDropdown(type, categoryToSelect);
 }
 
 typeExpenseBtn.addEventListener("click", () => setTransactionType("EXPENSE"));
 typeIncomeBtn.addEventListener("click", () => setTransactionType("INCOME"));
+
+// Toggle UPI App field
+txPaymentMethodSelect.addEventListener("change", (e) => {
+  if (e.target.value === "UPI") {
+    upiAppGroup.style.display = "block";
+  } else {
+    upiAppGroup.style.display = "none";
+  }
+});
+
+// Toggle Custom Category field
+txCategorySelect.addEventListener("change", (e) => {
+  if (e.target.value === "__CUSTOM__") {
+    customCategoryGroup.style.display = "block";
+    document.getElementById("txCustomCategory").focus();
+  } else {
+    customCategoryGroup.style.display = "none";
+  }
+});
 
 document.getElementById("openAddTxModalBtn").addEventListener("click", () => {
   document.getElementById("txForm").reset();
   document.getElementById("editTxId").value = "";
   document.getElementById("txModalTitle").textContent = "Add Transaction";
   document.getElementById("txDate").value = new Date().toISOString().split("T")[0];
+  document.getElementById("txPaymentMethod").value = "UPI";
+  upiAppGroup.style.display = "block";
   setTransactionType("EXPENSE");
   txModal.classList.add("active");
 });
@@ -461,14 +605,24 @@ document.getElementById("cancelTxModalBtn").addEventListener("click", () => {
   txModal.classList.remove("active");
 });
 
-window.openEditTxModal = function(tx) {
+window.openEditTxModal = function (tx) {
   document.getElementById("editTxId").value = tx.id;
   document.getElementById("txModalTitle").textContent = "Edit Transaction";
   document.getElementById("txAmount").value = tx.amount;
   document.getElementById("txDescription").value = tx.description || tx.text || "";
-  document.getElementById("txCategory").value = tx.category || "General";
   document.getElementById("txDate").value = tx.date;
-  setTransactionType(tx.type || "EXPENSE");
+
+  const payment = tx.paymentMethod || "UPI";
+  document.getElementById("txPaymentMethod").value = payment;
+  if (payment === "UPI") {
+    upiAppGroup.style.display = "block";
+    document.getElementById("txUpiApp").value = tx.upiApp || "";
+  } else {
+    upiAppGroup.style.display = "none";
+    document.getElementById("txUpiApp").value = "";
+  }
+
+  setTransactionType(tx.type || "EXPENSE", tx.category || "Groceries");
   txModal.classList.add("active");
 };
 
@@ -477,11 +631,21 @@ document.getElementById("txForm").addEventListener("submit", async (e) => {
   const id = document.getElementById("editTxId").value;
   const amount = parseFloat(document.getElementById("txAmount").value);
   const description = document.getElementById("txDescription").value.trim();
-  const category = document.getElementById("txCategory").value;
   const date = document.getElementById("txDate").value;
+  const paymentMethod = document.getElementById("txPaymentMethod").value;
+  const upiApp = paymentMethod === "UPI" ? document.getElementById("txUpiApp").value.trim() : null;
+
+  let category = txCategorySelect.value;
+  if (category === "__CUSTOM__") {
+    category = document.getElementById("txCustomCategory").value.trim();
+    if (!category) {
+      showToast("Please enter a custom category name.", "warning");
+      return;
+    }
+  }
 
   if (isNaN(amount) || amount <= 0 || !description || !date) {
-    showToast("Please provide valid details.", "warning");
+    showToast("Please provide valid transaction details.", "warning");
     return;
   }
 
@@ -489,6 +653,8 @@ document.getElementById("txForm").addEventListener("submit", async (e) => {
     amount,
     description,
     category,
+    paymentMethod,
+    upiApp,
     type: currentSelectedType,
     date,
   };
@@ -509,10 +675,9 @@ document.getElementById("txForm").addEventListener("submit", async (e) => {
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || "Operation failed");
 
-    showToast(isEdit ? "Transaction updated!" : "Transaction added!", "success");
+    showToast(isEdit ? "Transaction updated successfully!" : "Transaction recorded successfully!", "success");
     txModal.classList.remove("active");
 
-    // Refresh active data
     fetchDashboard();
     if (currentTab === "transactions") fetchTransactions();
     if (currentTab === "analytics") fetchAnalytics();
@@ -524,8 +689,8 @@ document.getElementById("txForm").addEventListener("submit", async (e) => {
 });
 
 // Delete Transaction
-window.deleteTransaction = async function(id) {
-  if (!confirm("Are you sure you want to delete this transaction?")) return;
+window.deleteTransaction = async function (id) {
+  if (!confirm("Are you sure you want to delete this transaction record?")) return;
 
   try {
     const res = await fetch(`${API_BASE}/transactions/${username}/${id}`, {
@@ -549,7 +714,7 @@ window.deleteTransaction = async function(id) {
 };
 
 // --------------------------------------------------------------------------
-// Analytics Tab
+// Analytics Tab (INR Formatting & Trends)
 // --------------------------------------------------------------------------
 async function fetchAnalytics() {
   try {
@@ -562,10 +727,8 @@ async function fetchAnalytics() {
     document.getElementById("avgMonthlySpendVal").textContent = formatCurrency(data.averageMonthlyExpense);
     document.getElementById("netLifetimeSavingsVal").textContent = formatCurrency(data.netSavings);
 
-    // Render 6-Month Trend Chart
     renderTrendChart(data.monthlyTrends);
 
-    // Render Category Breakdown Table
     const tbody = document.getElementById("categoryTableBody");
     tbody.innerHTML = "";
     if (!data.categoryBreakdown || data.categoryBreakdown.length === 0) {
@@ -577,7 +740,7 @@ async function fetchAnalytics() {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>🏷️ ${escapeHtml(item.category)}</strong></td>
-        <td>${formatCurrency(item.amount)}</td>
+        <td><strong>${formatCurrency(item.amount)}</strong></td>
         <td>
           <div style="display: flex; align-items: center; gap: 10px;">
             <div class="budget-progress-track" style="flex: 1;">
@@ -614,7 +777,7 @@ function renderTrendChart(trends) {
       labels: labels,
       datasets: [
         {
-          label: "Income",
+          label: "Income (₹)",
           data: incomeData,
           borderColor: "#10b981",
           backgroundColor: "rgba(16, 185, 129, 0.1)",
@@ -623,7 +786,7 @@ function renderTrendChart(trends) {
           pointRadius: 4,
         },
         {
-          label: "Expenses",
+          label: "Expenses (₹)",
           data: expenseData,
           borderColor: "#ef4444",
           backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -648,7 +811,7 @@ function renderTrendChart(trends) {
         y: {
           beginAtZero: true,
           grid: { color: "#f1f5f9" },
-          ticks: { callback: (v) => `$${v}` },
+          ticks: { callback: (v) => formatCurrency(v) },
         },
         x: { grid: { display: false } },
       },
@@ -657,12 +820,25 @@ function renderTrendChart(trends) {
 }
 
 // --------------------------------------------------------------------------
-// Budgets Management Tab
+// Budgets Management Tab (INR Limits & Calculations)
 // --------------------------------------------------------------------------
 const budgetModal = document.getElementById("budgetModal");
+const budgetCategorySelect = document.getElementById("budgetCategorySelect");
+const budgetCustomCategoryGroup = document.getElementById("budgetCustomCategoryGroup");
+
+budgetCategorySelect.addEventListener("change", (e) => {
+  if (e.target.value === "__CUSTOM__") {
+    budgetCustomCategoryGroup.style.display = "block";
+    document.getElementById("budgetCustomCategory").focus();
+  } else {
+    budgetCustomCategoryGroup.style.display = "none";
+  }
+});
+
 document.getElementById("openAddBudgetModalBtn").addEventListener("click", () => {
   document.getElementById("budgetForm").reset();
   document.getElementById("budgetMonth").value = new Date().getMonth() + 1;
+  budgetCustomCategoryGroup.style.display = "none";
   budgetModal.classList.add("active");
 });
 
@@ -676,13 +852,21 @@ document.getElementById("cancelBudgetModalBtn").addEventListener("click", () => 
 
 document.getElementById("budgetForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const category = document.getElementById("budgetCategory").value;
+  let category = budgetCategorySelect.value;
+  if (category === "__CUSTOM__") {
+    category = document.getElementById("budgetCustomCategory").value.trim();
+    if (!category) {
+      showToast("Please enter a category name for the budget.", "warning");
+      return;
+    }
+  }
+
   const monthlyLimit = parseFloat(document.getElementById("budgetLimit").value);
   const month = parseInt(document.getElementById("budgetMonth").value, 10);
   const year = new Date().getFullYear();
 
   if (isNaN(monthlyLimit) || monthlyLimit <= 0) {
-    showToast("Please enter a valid monthly limit", "warning");
+    showToast("Please enter a valid monthly limit in ₹.", "warning");
     return;
   }
 
@@ -696,7 +880,7 @@ document.getElementById("budgetForm").addEventListener("submit", async (e) => {
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || "Failed to set budget");
 
-    showToast("Budget configured successfully!", "success");
+    showToast("Budget configured successfully in ₹!", "success");
     budgetModal.classList.remove("active");
     fetchBudgets();
     fetchDashboard();
@@ -724,7 +908,7 @@ async function fetchBudgets() {
         <div class="dashboard-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
           <div class="empty-icon">🎯</div>
           <h3>No Budgets Set</h3>
-          <p style="color: var(--text-muted); margin: 8px 0 16px;">Set spending targets for your categories to stay on track.</p>
+          <p style="color: var(--text-muted); margin: 8px 0 16px;">Set spending targets in ₹ for your categories to avoid overspending.</p>
           <button class="btn btn-primary btn-sm" onclick="document.getElementById('openAddBudgetModalBtn').click()">+ Create First Budget</button>
         </div>
       `;
@@ -752,7 +936,7 @@ async function fetchBudgets() {
           <div class="budget-progress-fill ${fillClass}" style="width: ${cappedPercent}%;"></div>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
-          <span>${b.percentageUsed.toFixed(1)}% utilized (${formatCurrency(b.remaining)} left)</span>
+          <span>${b.percentageUsed.toFixed(1)}% utilized (${formatCurrency(b.remaining)} remaining)</span>
           <button class="btn-icon delete" title="Remove Budget" onclick="deleteBudget(${b.id})">🗑️</button>
         </div>
       `;
@@ -764,12 +948,12 @@ async function fetchBudgets() {
   }
 }
 
-window.deleteBudget = async function(id) {
+window.deleteBudget = async function (id) {
   if (!confirm("Are you sure you want to remove this budget limit?")) return;
   try {
     const res = await fetch(`${API_BASE}/budgets/${username}/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error("Failed to delete budget");
-    showToast("Budget removed", "success");
+    showToast("Budget limit removed", "success");
     fetchBudgets();
     fetchDashboard();
   } catch (err) {
@@ -791,7 +975,6 @@ async function fetchProfile() {
     document.getElementById("profileName").value = profile.name || profile.username;
     document.getElementById("profileEmail").value = profile.email || "";
 
-    // Update sidebar card
     document.getElementById("sidebarUserName").textContent = profile.name || profile.username;
     document.getElementById("sidebarUserEmail").textContent = profile.email || "";
     document.getElementById("userAvatar").textContent = (profile.name || profile.username).charAt(0).toUpperCase();
@@ -816,7 +999,7 @@ document.getElementById("updateProfileForm").addEventListener("submit", async (e
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || "Profile update failed");
 
-    showToast("Profile updated successfully!", "success");
+    showToast("Profile details updated successfully!", "success");
     fetchProfile();
 
   } catch (err) {
@@ -853,12 +1036,12 @@ document.getElementById("changePasswordForm").addEventListener("submit", async (
 });
 
 // --------------------------------------------------------------------------
-// CSV Export Functionality
+// CSV Export Functionality (INR)
 // --------------------------------------------------------------------------
 document.getElementById("exportCsvBtn").addEventListener("click", () => {
   const exportUrl = `${API_BASE}/export/csv/${username}`;
   window.open(exportUrl, "_blank");
-  showToast("Downloading transactions CSV...", "info");
+  showToast("Downloading transactions CSV in INR format...", "info");
 });
 
 // --------------------------------------------------------------------------

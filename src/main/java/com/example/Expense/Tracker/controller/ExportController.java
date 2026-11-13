@@ -35,23 +35,32 @@ public class ExportController {
                 username, type, category, startDate, endDate, keyword
         );
 
+        java.time.format.DateTimeFormatter indianDateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
         StringBuilder sb = new StringBuilder();
-        sb.append("ID,Date,Description,Type,Category,Amount\n");
+        sb.append("ID,Date (DD-MM-YYYY),Description,Type,Category,Payment Method,Amount (INR)\n");
 
         for (TransactionResponse t : list) {
             String sanitizedDesc = t.getDescription() != null ? t.getDescription().replace("\"", "\"\"") : "";
             String sanitizedCat = t.getCategory() != null ? t.getCategory().replace("\"", "\"\"") : "";
+            String paymentInfo = t.getPaymentMethod() != null ? t.getPaymentMethod() : "UPI";
+            if (t.getUpiApp() != null && !t.getUpiApp().isBlank()) {
+                paymentInfo += " (" + t.getUpiApp() + ")";
+            }
+            paymentInfo = paymentInfo.replace("\"", "\"\"");
+            String formattedDate = t.getDate() != null ? t.getDate().format(indianDateFormatter) : "";
+
             sb.append(t.getId()).append(",")
-              .append(t.getDate()).append(",")
+              .append(formattedDate).append(",")
               .append("\"").append(sanitizedDesc).append("\",")
               .append(t.getType()).append(",")
               .append("\"").append(sanitizedCat).append("\",")
-              .append(String.format("%.2f", t.getAmount()))
+              .append("\"").append(paymentInfo).append("\",")
+              .append(String.format(java.util.Locale.US, "%.2f", t.getAmount()))
               .append("\n");
         }
 
         byte[] csvBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        String filename = "expense_tracker_" + username + "_" + LocalDate.now() + ".csv";
+        String filename = "vaultflow_expenses_" + username + "_" + LocalDate.now().format(indianDateFormatter) + ".csv";
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

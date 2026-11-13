@@ -1,48 +1,60 @@
-# VaultFlow - Full-Stack Enterprise Expense Tracker 💰📊
+# VaultFlow - India-First Personal Finance & Expense Tracker 💰🇮🇳
 
 [![Java](https://img.shields.io/badge/Language-Java%2021-orange.svg)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Framework-Spring%20Boot%203.3.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Spring Data JPA](https://img.shields.io/badge/ORM-Hibernate%20/%20JPA-blue.svg)](https://spring.io/projects/spring-data-jpa)
 [![Security](https://img.shields.io/badge/Security-BCrypt%20Hashing-red.svg)](https://spring.io/projects/spring-security)
 [![Database](https://img.shields.io/badge/Database-MySQL%20/%20H2-blue.svg)](https://www.mysql.com/)
-[![Frontend](https://img.shields.io/badge/Frontend-HTML5%20/%20CSS3%20/%20Modern%20JS-yellow.svg)](#)
+[![Currency](https://img.shields.io/badge/Currency-INR%20(₹)%20en--IN-darkgreen.svg)](#)
+[![Timezone](https://img.shields.io/badge/Timezone-Asia%2FKolkata-purple.svg)](#)
 [![Charts](https://img.shields.io/badge/Analytics-Chart.js-ff6384.svg)](https://www.chartjs.org/)
 
-A full-stack, responsive financial management and expense tracking platform built with **Java 21**, **Spring Boot 3**, **Spring Data JPA**, **MySQL**, and modern **JavaScript / Chart.js**.
+A full-stack, India-first financial management and expense tracking platform built with **Java 21**, **Spring Boot 3**, **Spring Data JPA**, **MySQL**, and modern **JavaScript / Chart.js**. Fully localized for Indian users with native **INR (₹)** formatting, Indian comma grouping (thousands, lakhs, crores), Indian payment modes (UPI, Net Banking, IMPS, RTGS, Cash), and typical Indian expense/income categories.
 
 ---
 
 ## 🚀 Key Features
 
-### 🔐 1. Authentication & Security
+### 🇮🇳 1. Indian Financial Standards & Localization
+- **Indian Rupee (₹) Throughout**: Every metric, KPI, chart, tooltip, table, and modal utilizes the `₹` symbol with `en-IN` Indian comma grouping (e.g. ₹500, ₹1,500, ₹25,000, ₹1,25,000, ₹10,00,000, ₹1,00,00,000).
+- **Indian Date & Time**: `DD-MM-YYYY` date display with `Asia/Kolkata` timezone conventions.
+- **Indian Payment Methods**: Dedicated tracking for **UPI** (Google Pay, PhonePe, Paytm, BHIM, Cred, etc.), **Cash**, **Debit Card**, **Credit Card**, **Net Banking**, **IMPS**, **NEFT**, **RTGS**, and **Mobile Wallets**.
+- **Indian Categories & Custom Categories**:
+  - *Essential Expenses*: Groceries, Vegetables & Fruits, Rent, Electricity, Water Bill, Gas Cylinder, Internet & Mobile Recharge, Transportation, Fuel, Medical & Healthcare, Education.
+  - *Lifestyle*: Restaurants & Dining, Food Delivery, Shopping, Entertainment, Travel, Gym & Fitness, Personal Care, Subscriptions.
+  - *Financial*: EMI & Loan Payments, Insurance, Investments, Savings, Bank Charges, Taxes.
+  - *Income Sources*: Salary, Freelancing, Business Income, Internship Stipend, Scholarship, Interest Income, Rental Income, Investment Returns, Other Income.
+  - *Custom Categories*: Users can create, save, and manage any custom category.
+
+### 🔐 2. Authentication & Security
 - **BCrypt Password Hashing**: Passwords are cryptographically hashed and salted before database persistence.
-- **Self-Healing Credential Migration**: Transparently upgrades any legacy plain-text passwords into BCrypt on first login.
+- **Self-Healing Credential Migration**: Transparently upgrades legacy plain-text passwords into BCrypt on first login.
 - **Input Validation**: Centralized Jakarta Validation (`@Valid`, `@NotBlank`, `@Size`, `@Email`, `@Positive`).
 - **Profile & Credential Management**: Update user profile details and securely change account passwords.
 
-### 💳 2. Transaction Management
+### 💳 3. Transaction Management
 - **Income & Expense Tracking**: Strict typing with `TransactionType.INCOME` and `TransactionType.EXPENSE`.
-- **Predefined & Custom Categories**: Food & Dining, Housing, Utilities, Shopping, Transportation, Entertainment, Healthcare, Salary, Investments, and General.
+- **Payment Method Association**: Record payment modes with UPI application identifiers.
 - **Full CRUD Capabilities**: Add, edit, filter, and delete transactions with confirmation.
 - **Search & Multi-Facet Filtering**: Filter dynamically by keyword/search term, transaction type, category, and date range (`startDate`, `endDate`).
-- **CSV Data Export**: Instant RFC-4180 compliant CSV export for spreadsheets and accounting software.
+- **CSV Data Export in INR**: RFC-4180 compliant CSV export featuring `DD-MM-YYYY` dates, payment methods, and clean INR amounts.
 
-### 📊 3. Interactive Analytics & Dashboard
+### 📊 4. Interactive Analytics & Dashboard
 - **Dynamic Financial KPIs**:
-  - Total Current Balance ($) = Total Income - Total Expenses
-  - Total Income & Total Expenses
-  - Monthly Cash Flow & Net Monthly Savings
+  - Total Current Balance (₹) = Total Income - Total Expenses
+  - Total Income & Total Expenses (₹)
+  - Monthly Cash Flow & Net Monthly Savings (₹)
   - Monthly Savings Rate (%)
 - **Interactive Chart.js Visualizations**:
-  - **Cash Flow Comparison**: Income vs Expenses bar chart.
+  - **Cash Flow Comparison**: Income vs Expenses bar chart in ₹.
   - **Expense Distribution**: Interactive category breakdown doughnut chart.
-  - **6-Month Financial Trend**: Dual-axis income and expenditure line chart.
+  - **6-Month Financial Trend**: Dual-axis income and expenditure line chart in ₹.
 - **Spend Intelligence**:
   - Automatically identifies top spending category.
-  - Computes historical average monthly expenditure and lifetime net savings.
+  - Computes historical average monthly expenditure (₹) and lifetime net savings (₹).
 
-### 🎯 4. Budget Tracking & Overspending Alerts
-- **Monthly Category Spending Limits**: Set target spending limits per category for each month.
+### 🎯 5. Budget Tracking & Overspending Alerts (₹)
+- **Monthly Category Spending Limits**: Set target spending limits per category for each month in ₹.
 - **Live Utilization Tracking**: Dynamic progress bars and percentage calculation.
 - **Visual Alert Banners**:
   - `NORMAL`: Below 80% utilization.
